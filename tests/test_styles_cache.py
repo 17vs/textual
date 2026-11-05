@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import gc
+import weakref
+
 from rich.segment import Segment
 
 from textual._styles_cache import StylesCache
@@ -13,6 +16,17 @@ def _extract_content(lines: list[Strip]) -> list[str]:
     """Extract the text content from lines."""
     content = ["".join(segment.text for segment in line) for line in lines]
     return content
+
+
+def test_get_inner_outer_does_not_retain_styles_cache() -> None:
+    cache = StylesCache()
+    cache_reference = weakref.ref(cache)
+    cache.get_inner_outer(Color.parse("blue"), Color.parse("green"))
+
+    del cache
+    gc.collect()
+
+    assert cache_reference() is None
 
 
 def test_set_dirty():
